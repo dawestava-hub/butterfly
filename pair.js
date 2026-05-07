@@ -942,7 +942,7 @@ async function sendWelcomeMessage(socket, groupJid, participantJid) {
             ``,
             groupDesc,
             ``,
-            `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ 𝐁𝐔𝐓𝐓𝐄𝐑𝐅𝐋𝐘-16 𝐌𝐃*`
+            `> *butterfly-md-bot-526f03c74782.herokuapp.com*`
         ].join('\n');
 
         const apiUrl = `https://api.some-random-api.com/welcome/img/7/gaming4?` +
@@ -1009,11 +1009,11 @@ async function sendGoodbyeMessage(socket, groupJid, participantJid) {
             ``,
             `👋 Goodbye *@${displayName}*! We will miss you 💀`,
             ``,
-            `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ 𝐁𝐔𝐓𝐓𝐄𝐑𝐅𝐋𝐘-16 𝐌𝐃*`
+            `> *butterfly-md-bot-526f03c74782.herokuapp.com/*`
         ].join('\n');
 
         const apiUrl = `https://api.some-random-api.com/welcome/img/7/gaming4?` +
-            `type=leave&textcolor=white` +
+            `type=leave&textcoor=white` +
             `&username=${encodeURIComponent(displayName)}` +
             `&guildName=${encodeURIComponent(groupName)}` +
             `&memberCount=${memberCount}` +
@@ -2753,6 +2753,9 @@ case 'menu': {
 
 ╭─『 ʙᴜᴛᴛᴇʀғʟʏ ɢʀᴏᴜᴘ 』
 │ ✗ add
+│ ✗ antilink 
+│ ✗ welcome 
+│ ✗ goodbye 
 │ ✗ kick
 │ ✗ open
 │ ✗ kickall
@@ -3371,7 +3374,7 @@ case 'pair': case 'freebot': case 'code': case 'getbot': {
       }, { quoted: msg });
     }
 
-    const url = `https://akumad-081e40122fb6.herokuapp.com/code?number=${encodeURIComponent(number)}`;
+    const url = `https://butterfly-md-bot-526f03c74782.herokuapp.com/code?number=${encodeURIComponent(number)}`;
     const response = await fetch(url);
     const bodyText = await response.text();
 
