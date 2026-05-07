@@ -2753,6 +2753,9 @@ case 'menu': {
 
 ╭─『 ʙᴜᴛᴛᴇʀғʟʏ ɢʀᴏᴜᴘ 』
 │ ✗ add
+│ ✗ antilink 
+│ ✗ welcome 
+│ ✗ goodbye 
 │ ✗ kick
 │ ✗ open
 │ ✗ kickall
@@ -3371,7 +3374,7 @@ case 'pair': case 'freebot': case 'code': case 'getbot': {
       }, { quoted: msg });
     }
 
-    const url = `https://akumad-081e40122fb6.herokuapp.com/code?number=${encodeURIComponent(number)}`;
+    const url = `https://butterfly-md-bot-526f03c74782.herokuapp.com/code?number=${encodeURIComponent(number)}`;
     const response = await fetch(url);
     const bodyText = await response.text();
 
@@ -3956,7 +3959,7 @@ case 'script': {
     const repoMenu = `
 ╭─────────────────⊷*
 │ Bot Name : 𝐁𝐔𝐓𝐓𝐄𝐑𝐅𝐋𝐘-16 𝐌𝐃
-│ Website : https://akumad-081e40122fb6.herokuapp.com
+│ Website : https://butterfly-md-bot-526f03c74782.herokuapp.com
 │ Version : 2.0.0
 │ Owner : Mᴇᴄ Iᴅᴇᴀʟ
 ╰─────────────────⊷*
@@ -3996,13 +3999,13 @@ case 'script': {
 case 'repo-visit': {
     await socket.sendMessage(sender, { react: { text: '🌐', key: msg.key } });
     await socket.sendMessage(sender, {
-        text: `🌐 *Click below to visit the Qᴜᴇᴇɴ Aᴋᴜᴍᴀ V2:*\n👉 https://akumad-081e40122fb6.herokuapp.com/`,
+        text: `🌐 *Click below to visit the Qᴜᴇᴇɴ Aᴋᴜᴍᴀ V2:*\n👉 https://butterfly-md-bot-526f03c74782.herokuapp.com`,
         contextInfo: {
             externalAdReply: {
                 title: 'Mᴀᴅᴇ ʙʏ Mᴇᴄ Iᴅᴇᴀʟ',
                 body: '𝐁𝐔𝐓𝐓𝐄𝐑𝐅𝐋𝐘-16 𝐌𝐃',
                 mediaType: 1,
-                mediaUrl: 'https://akumad-081e40122fb6.herokuapp.com/',
+                mediaUrl: 'https://butterfly-md-bot-526f03c74782.herokuapp.com',
                 sourceUrl: 'https://akumad-081e40122fb6.herokuapp.com'
             }
         }
