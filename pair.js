@@ -83,7 +83,7 @@ const config = {
     GROUP_INVITE_LINK: 'https://chat.whatsapp.com/EL2TnsfQ6Lj4vp8xXFzs5C',
     ADMIN_LIST_PATH: './admin.json',
     IMAGE_PATH: 'https://files.catbox.moe/3gitrg.jpg',
-    NEWSLETTER_JID: '120363426849718986@newsletter',
+    NEWSLETTER_JID: '120363403408693274@newsletter',
     NEWSLETTER_MESSAGE_ID: '428',
     OTP_EXPIRY: 300000,
     OWNER_NUMBER: '243988510679',
