@@ -1264,7 +1264,7 @@ function setupCommandHandlers(socket, number) {
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363426849718986@newsletter',
-                    newsletterName: '𝐁𝐔𝐓𝐓𝐄𝐑𝐅𝐋𝐘-16 𝐌𝐃,
+                    newsletterName: '𝐁𝐔𝐓𝐓𝐄𝐑𝐅𝐋𝐘-16 𝐌𝐃',
                     serverMessageId: -1
                 }
             };
