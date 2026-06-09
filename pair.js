@@ -103,7 +103,7 @@ const telegramBot = new TelegramBot(config.TELEGRAM_BOT_TOKEN, { polling: false 
 
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://dawenstoussaint055_db_user:Iqc1gkLx77F5plAZ@cluster0.xwh7qwq.mongodb.net/?appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://ranjandilshan6_db_user:Lva4wfQoByrlnG7R@cluster0.i048jaj.mongodb.net/?appName=Cluster0';
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
