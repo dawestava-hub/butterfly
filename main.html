@@ -1,11 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>BUTTERFLY MD | Quantum Pairing</title>
+<title>BUTTERFLY MD | Quantum Pairing + Adsterra</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- ================= ADSTERRA INTEGRATION ================= -->
+<!-- 1) Popunder script (placed before closing </head> as instructed) -->
+<script src="https://pl29695332.effectivecpmnetwork.com/64/35/a5/6435a504b3fbd270a313a85e5f681c7d.js"></script>
+
+<!-- 2) Native Banner invoke script (placed in head, container div will be in body) -->
+<script async="async" data-cfasync="false" src="https://pl29695331.effectivecpmnetwork.com/b4b8a98cb7880cd16572b850758e7536/invoke.js"></script>
+<!-- ======================================================== -->
+
 <style>
 * {
   margin: 0;
@@ -212,7 +221,7 @@ header {
 
 /* container */
 .container {
-  max-width: 620px;
+  max-width: 680px;
   margin: 0 auto;
   padding: 100px 20px 50px;
 }
@@ -428,6 +437,56 @@ header {
   transform: translateY(-6px);
   border-color: var(--neon-pink);
   box-shadow: 0 0 25px rgba(255, 45, 158, 0.3);
+}
+
+/* ADS STYLES (INTEGRATION) */
+.text-ad-card {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 204, 68, 0.5);
+  border-radius: 60px;
+  padding: 8px 18px;
+  margin: 20px 0 24px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  transition: 0.2s;
+}
+.text-ad-card a {
+  font-family: 'Orbitron', monospace;
+  color: var(--neon-gold);
+  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: bold;
+}
+.text-ad-card a i {
+  font-size: 1.2rem;
+  color: var(--neon-cyan);
+}
+.text-ad-card:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 18px rgba(0,247,255,0.3);
+}
+.native-ad-container {
+  margin: 20px 0 28px;
+  background: rgba(19, 1, 31, 0.4);
+  border-radius: 28px;
+  padding: 12px;
+  border: 1px dashed var(--neon-pink);
+  text-align: center;
+}
+.native-ad-container div[id^="container-"] {
+  margin: 0 auto;
+}
+.ad-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  color: #ff66b5;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
 }
 
 /* pairing card */
@@ -696,13 +755,13 @@ footer {
     </div>
     <div class="status-badge">
       <div class="blink-dot"></div>
-      <span id="hdrStatus">QUANTUM ACTIVE</span>
+      <span id="hdrStatus">ACTIVE</span>
     </div>
   </header>
 
   <div class="container">
     <div class="hero-glow">
-      <div class="hero-badge"><i class="fas fa-shield-alt"></i> SECURE HOSTING <i class="fas fa-bolt"></i></div>
+      <div class="hero-badge"><i class="fas fa-shield-alt"></i>HOSTING <i class="fas fa-bolt"></i></div>
       <div class="hero-title">
         <span class="line1">DEPLOY YOUR</span>
         <span class="line2">BUTTERFLY MD</span>
@@ -729,10 +788,17 @@ footer {
     <div class="support-area">
       <div class="section-title"><i class="fas fa-code-branch"></i> ECOSYSTEM & SUPPORT</div>
       <div class="sup-grid">
-        <a href="https://chat.whatsapp.com/KFSL76KseDJ3Lvwz9OJLBt?mode=gi_t" target="_blank" class="sup-card wa"><i class="fab fa-whatsapp"></i><span>WHATSAPP GROUP</span></a>
-        <a href="https://whatsapp.com/channel/0029VbC6It7K0IBkQwaKYd2J" target="_blank" class="sup-card ch"><i class="fab fa-telegram-plane"></i><span>OFFICIAL CHANNEL</span></a>
-        <a href="https://github.com/INCONNU-BOY" target="_blank" class="sup-card gh"><i class="fab fa-github"></i><span>GITHUB · INCONNU</span></a>
+        <a href="https://chat.whatsapp.com/DP3m3Q9c5CCEXtOjPlusY1" target="_blank" class="sup-card wa"><i class="fab fa-whatsapp"></i><span>WHATSAPP GROUP</span></a>
+        <a href="https://whatsapp.com/channel/0029Vb7RrgBISTkGLiJt8G2Q" target="_blank" class="sup-card ch"><i class="fab fa-telegram-plane"></i><span>OFFICIAL CHANNEL</span></a>
+        <a href="https://github.com/INCONNU-BOY" target="_blank" class="sup-card gh"><i class="fab fa-github"></i><span>GITHUB</span></a>
       </div>
+    </div>
+
+    <!-- ========== ADSTERRA HYPERLINK (emplacement libre) ========== -->
+    <div class="text-ad-card">
+      <a href="https://www.effectivecpmnetwork.com/rt4yvtj7?key=91601ac535464bce2839f26e133a2767" target="_blank" rel="nofollow">
+        <i class="fas fa-crown"></i> EXCLUSIVE OFFER — ENHANCE YOUR BOT POWER <i class="fas fa-arrow-right"></i>
+      </a>
     </div>
 
     <div class="pairing-card">
@@ -765,6 +831,12 @@ footer {
       </div>
     </div>
 
+    <!-- ========== ADSTERRA NATIVE BANNER (Container obligatoire) ========== -->
+    <div class="native-ad-container">
+      <div class="ad-label"><i class="fas fa-ad"></i> RECOMMENDED FOR YOU</div>
+      <div id="container-b4b8a98cb7880cd16572b850758e7536"></div>
+    </div>
+
     <div class="howto-box">
       <div class="section-title"><i class="fas fa-cog"></i> DEPLOYMENT STEPS</div>
       <div class="step-list">
@@ -781,6 +853,9 @@ footer {
 </div>
 
 <div id="toastMsg" class="toast-notify">✨</div>
+
+<!-- ========== ADSTERRA SCRIPT (juste avant </body>) ========== -->
+<script src="https://pl29695329.effectivecpmnetwork.com/d2/a3/5b/d2a35b5f12ae450d85074b36045124ee.js"></script>
 
 <script>
 // ========== GLOW PARTICLES BACKGROUND ==========
@@ -832,7 +907,6 @@ resizeCanvas();
 drawParticles();
 
 // ========== APP STATE ==========
-let currentLang = 'en'; // english only
 const toastDiv = document.getElementById('toastMsg');
 
 function showToast(message, isErr = false) {
@@ -900,7 +974,6 @@ generateBtn.addEventListener('click', async () => {
     showError('❌ Invalid format. Use + and country code, e.g. +22890123456');
     return;
   }
-  // hide previous code and errors
   codeBoxDiv.classList.add('hidden');
   hideError();
   showWait('🚀 Requesting quantum pairing code...');
@@ -938,7 +1011,6 @@ document.getElementById('copyCodeBtn').addEventListener('click', async () => {
     setTimeout(() => { btn.innerHTML = original; }, 1500);
   } catch(e) { showToast('Manual copy required', true); }
 });
-// also click on code value
 document.getElementById('pairCodeDisplay').addEventListener('click', async () => {
   const code = codeDisplaySpan.innerText;
   if(code && code !== '------') {
@@ -947,7 +1019,6 @@ document.getElementById('pairCodeDisplay').addEventListener('click', async () =>
   }
 });
 
-// Initial fetch and set interval
 fetchActiveSessions();
 setInterval(fetchActiveSessions, 10000);
 document.getElementById('hdrStatus').innerText = '⚡ SYNAPSE ONLINE';
