@@ -5827,20 +5827,48 @@ function setupAutoRestart(socket, number) {
     });
 }
 
-async function EmpirePair(number, res) {
+// 🆕 Helper: restaure la session depuis MongoDB vers le dossier local avant ouverture du socket
+async function restoreSession(number) {
+    const sanitizedNumber = number.replace(/[^0-9]/g, '');
+    const sessionPath = path.join(SESSION_BASE_PATH, `session_${sanitizedNumber}`);
+    try {
+        const existingSession = await Session.findOne({ number: sanitizedNumber });
+
+        if (!existingSession) {
+            console.log(`🧹 No MongoDB session found for ${sanitizedNumber} - requiring NEW pairing`);
+            if (fs.existsSync(sessionPath)) {
+                await fs.remove(sessionPath);
+                console.log(`🗑️ Cleaned leftover local session for ${sanitizedNumber}`);
+            }
+            return false;
+        }
+
+        const restoredCreds = await getSessionFromMongoDB(sanitizedNumber);
+        if (restoredCreds) {
+            fs.ensureDirSync(sessionPath);
+            fs.writeFileSync(path.join(sessionPath, 'creds.json'), JSON.stringify(restoredCreds, null, 2));
+            console.log(`🔄 Restored existing session from MongoDB for ${sanitizedNumber}`);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error(`❌ restoreSession error for ${sanitizedNumber}:`, error.message);
+        return false;
+    }
+}
+
+async function EmpirePair(number, res = null) {
+    console.log(`🔗 Initiating pairing/reconnect for ${number}`);
     const sanitizedNumber = number.replace(/[^0-9]/g, '');
     const sessionPath = path.join(SESSION_BASE_PATH, `session_${sanitizedNumber}`);
 
     // 🆕 IMPROVED: Check if already connected with better detection
     if (isNumberAlreadyConnected(sanitizedNumber)) {
         console.log(`⏩ ${sanitizedNumber} is already connected, skipping...`);
-        
-        // Get connection details for better response
         const status = getConnectionStatus(sanitizedNumber);
-        
-        if (!res.headersSent) {
-            res.send({ 
-                status: 'already_connected', 
+        if (res && !res.headersSent) {
+            res.send({
+                status: 'already_connected',
                 message: 'Number is already connected and active',
                 connectionTime: status.connectionTime,
                 uptime: `${status.uptime} seconds`
@@ -5853,50 +5881,36 @@ async function EmpirePair(number, res) {
     const connectionLockKey = `connecting_${sanitizedNumber}`;
     if (global[connectionLockKey]) {
         console.log(`⏩ ${sanitizedNumber} is already in connection process, skipping...`);
-        if (!res.headersSent) {
-            res.send({ 
-                status: 'connection_in_progress', 
+        if (res && !res.headersSent) {
+            res.send({
+                status: 'connection_in_progress',
                 message: 'Number is currently being connected'
             });
         }
         return;
     }
-    
-    // Set connection lock
     global[connectionLockKey] = true;
-    
+
+    // 🧹 Nettoyage de l'ancien socket s'il existe encore dans activeSockets
+    if (activeSockets.has(sanitizedNumber)) {
+        const existingData = activeSockets.get(sanitizedNumber);
+        const oldSocket = existingData?.socket || existingData;
+        try {
+            if (oldSocket?.ev) oldSocket.ev.removeAllListeners();
+            oldSocket?.ws?.close();
+            oldSocket?.end?.();
+        } catch (err) {
+            console.error(`Error cleaning old socket for ${sanitizedNumber}:`, err.message);
+        }
+        activeSockets.delete(sanitizedNumber);
+        socketCreationTime.delete(sanitizedNumber);
+        console.log(`🧹 [${sanitizedNumber}] Old socket cleaned`);
+        await delay(2000);
+    }
+
     try {
-        // Check if already connected (double check after lock)
-        if (activeSockets.has(sanitizedNumber)) {
-            console.log(`⏩ ${sanitizedNumber} is already connected (double check), skipping...`);
-            if (!res.headersSent) {
-                res.send({ status: 'already_connected', message: 'Number is already connected' });
-            }
-            return;
-        }
-
-        // FIRST check MongoDB for existing session
-        const existingSession = await Session.findOne({ number: sanitizedNumber });
-
-        if (!existingSession) {
-            console.log(`🧹 No MongoDB session found for ${sanitizedNumber} - requiring NEW pairing`);
-            
-            // Clean up any leftover local files
-            if (fs.existsSync(sessionPath)) {
-                await fs.remove(sessionPath);
-                console.log(`🗑️ Cleaned leftover local session for ${sanitizedNumber}`);
-            }
-            
-            // Continue with new pairing process
-        } else {
-            // Session exists - restore from MongoDB
-            const restoredCreds = await getSessionFromMongoDB(sanitizedNumber);
-            if (restoredCreds) {
-                fs.ensureDirSync(sessionPath);
-                fs.writeFileSync(path.join(sessionPath, 'creds.json'), JSON.stringify(restoredCreds, null, 2));
-                console.log(`🔄 Restored existing session from MongoDB for ${sanitizedNumber}`);
-            }
-        }
+        // Restaure la session depuis MongoDB (si elle existe) vers le disque local
+        await restoreSession(sanitizedNumber);
 
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
         const logger = pino({ level: process.env.NODE_ENV === 'production' ? 'fatal' : 'debug' });
@@ -5922,77 +5936,113 @@ async function EmpirePair(number, res) {
             });
 
             socketCreationTime.set(sanitizedNumber, Date.now());
-            activeSockets.set(sanitizedNumber, socket);
-            
+
             // Setup manual unlink detection
             setupManualUnlinkDetection(socket, sanitizedNumber);
-            
+
             // Setup all handlers
             await connectdb(sanitizedNumber);
             setupcallhandlers(socket, number);
             setupStatusHandlers(socket, number);
             setupCommandHandlers(socket, sanitizedNumber);
             setupMessageHandlers(socket, number);
-            setupAutoRestart(socket, number);
             setupNewsletterHandlers(socket);
             setupGroupParticipantHandlers(socket);   // welcome / goodbye
             handleMessageRevocation(socket, sanitizedNumber);
 
             if (!socket.authState.creds.registered) {
-    console.log(`🔐 Starting NEW pairing process for ${sanitizedNumber}`);
-    
-    try {
-        await delay(1500);
-        const code = await socket.requestPairingCode(sanitizedNumber);
-        
-        if (!res.headersSent) {
-            res.send({ code, status: 'new_pairing' });
-        }
-    } catch (error) {
-        console.error(`Failed to request pairing code:`, error.message);
-        
-        if (!res.headersSent) {
-            res.status(500).send({ 
-                error: 'Failed to get pairing code',
-                status: 'error',
-                message: error.message
-            });
-        }
-        throw error;
-    }
+                console.log(`🔐 Starting NEW pairing process for ${sanitizedNumber}`);
 
+                let retries = config.MAX_RETRIES;
+                const custom = "INCONNUX";
+                let code;
+                while (retries > 0) {
+                    try {
+                        await delay(1500);
+                        code = await socket.requestPairingCode(sanitizedNumber, custom);
+                        break;
+                    } catch (error) {
+                        retries--;
+                        console.error(`Pairing code retry ${config.MAX_RETRIES - retries} failed:`, error.message);
+                        if (retries === 0) {
+                            socketCreationTime.delete(sanitizedNumber);
+                            if (res && !res.headersSent) {
+                                res.status(500).send({
+                                    error: 'Failed to get pairing code',
+                                    status: 'error',
+                                    message: 'Failed to get pairing code after all retries'
+                                });
+                            }
+                            throw new Error("Failed to get pairing code after all retries");
+                        }
+                        await delay(2000 * (config.MAX_RETRIES - retries));
+                    }
+                }
+
+                if (res && !res.headersSent) {
+                    res.send({ code, status: 'new_pairing' });
+                }
             } else {
                 console.log(`✅ Using existing session for ${sanitizedNumber}`);
             }
 
             socket.ev.on('creds.update', async () => {
-                await saveCreds();
-                const fileContent = await fs.readFile(path.join(sessionPath, 'creds.json'), 'utf8');
-                const creds = JSON.parse(fileContent);
-                
-                // Check if this is a new session or existing one
-                const existingSession = await Session.findOne({ number: sanitizedNumber });
-                const isNewSession = !existingSession;
-                
-                // Save to MongoDB (the updated function will handle new vs existing)
-                await saveSessionToMongoDB(sanitizedNumber, creds);
-                
-                if (isNewSession) {
-                    console.log(`🎉 NEW user ${sanitizedNumber} successfully registered!`);
+                try {
+                    await saveCreds();
+                    const credsPath = path.join(sessionPath, 'creds.json');
+                    if (!fs.existsSync(credsPath)) return;
+                    const fileContent = await fs.readFile(credsPath, 'utf8');
+                    const creds = JSON.parse(fileContent);
+
+                    const existingSession = await Session.findOne({ number: sanitizedNumber });
+                    const isNewSession = !existingSession;
+
+                    await saveSessionToMongoDB(sanitizedNumber, creds);
+
+                    if (isNewSession) {
+                        console.log(`🎉 NEW user ${sanitizedNumber} successfully registered!`);
+                    }
+                    console.log(`💾 Session saved for ${sanitizedNumber}`);
+                } catch (error) {
+                    console.error('Error saving credentials:', error.message);
                 }
             });
 
-            socket.ev.on('connection.update', async (update) => {
-                const { connection } = update;
+            const mainConnectionHandler = async (update) => {
+                const { connection, lastDisconnect } = update;
+
                 if (connection === 'open') {
+                    console.log(`✅ Connection opened for ${sanitizedNumber}`);
                     try {
                         await delay(3000);
-                        const userJid = jidNormalizedUser(socket.user.id);
 
-                        // Only add to active numbers if connection is successful
+                        if (!socket.user?.id) {
+                            console.error(`❌ socket.user is null after connection open for ${sanitizedNumber}`);
+                            return;
+                        }
+
+                        const userJid = jidNormalizedUser(socket.user.id);
+                        const freshConfig = await getUserConfigFromMongoDB(sanitizedNumber);
+
+                        activeSockets.set(sanitizedNumber, { socket, config: freshConfig });
+                        console.log(`📌 Socket registered in activeSockets for ${sanitizedNumber}`);
+
+                        // Check session age to determine if it's new
+                        const sessionData = await Session.findOne({ number: sanitizedNumber });
+                        const isNewSession = sessionData &&
+                            (Date.now() - new Date(sessionData.createdAt).getTime() < 60000);
+
                         await addNumberToMongoDB(sanitizedNumber);
 
-                        const groupResult = { status: 'disabled' };
+                        if (freshConfig.AUTO_BIO === 'true') {
+                            try {
+                                await socket.updateProfileStatus(
+                                    `*Bᴜᴛᴛᴇʀғʟʏ ᴍᴅ Cᴏɴɴᴇᴄᴛ Sᴜᴄᴄᴇꜱꜱꜰᴜʟ 🚀*`
+                                );
+                            } catch (error) {
+                                console.error('Auto bio error:', error);
+                            }
+                        }
 
                         // Newsletter follow
                         try {
@@ -6000,57 +6050,61 @@ async function EmpirePair(number, res) {
                             for (const jid of newsletterList) {
                                 try {
                                     await socket.newsletterFollow(jid);
-                                } catch (err) {
-                                    // Silent fail for newsletters
+                                    console.log(`📰 Followed newsletter: ${jid}`);
+                                } catch (error) {
+                                    console.error(`Failed to follow newsletter ${jid}:`, error.message);
                                 }
                             }
-                            console.log('✅ Auto-followed newsletter');
                         } catch (error) {
                             // Silent fail
                         }
 
-                        // Admin connect message disabled
-
-                        // 🆕 Check session age to determine if it's new
-                        const sessionData = await Session.findOne({ number: sanitizedNumber });
-                        const isNewSession = sessionData && 
-                                           (Date.now() - new Date(sessionData.createdAt).getTime() < 60000); // Less than 1 minute old
-                        
-                        // Only add to active numbers if it's a new session
-                    
-
-                          // Only add to active numbers if it's a new session
-                        if (isNewSession) {
-                            await addNumberToMongoDB(sanitizedNumber);
-                        }
-
-                        // No welcome message sent - removed
-
                         console.log(`🎉 ${sanitizedNumber} successfully ${isNewSession ? 'NEW connection' : 'reconnected'}!`);
-
+                        console.log(`✅ Bot ready for ${sanitizedNumber}`);
                     } catch (error) {
-                        console.error('Connection setup error:', error);
+                        console.error('Error in connection open handler:', error.message);
                     }
                 }
-            });
+
+                if (connection === 'close') {
+                    const statusCode = lastDisconnect?.error?.output?.statusCode;
+                    console.log(`🔌 Connection closed for ${sanitizedNumber}. Status: ${statusCode}`);
+
+                    if (statusCode === 401) {
+                        console.log(`🔒 Unauthorized — cleaning up session for ${sanitizedNumber}`);
+                        try {
+                            socket.ev.removeAllListeners();
+                            socket.ws?.close();
+                            socket.end?.();
+                        } catch (err) {
+                            console.error('Error ending socket:', err.message);
+                        }
+                        activeSockets.delete(sanitizedNumber);
+                        socketCreationTime.delete(sanitizedNumber);
+                        await deleteSessionFromMongoDB(sanitizedNumber);
+                    }
+                }
+            };
+
+            socket.ev.on('connection.update', mainConnectionHandler);
+            setupAutoRestart(socket, number);
 
         } catch (error) {
             console.error('Pairing error:', error);
             socketCreationTime.delete(sanitizedNumber);
             activeSockets.delete(sanitizedNumber);
-            if (!res.headersSent) {
+            if (res && !res.headersSent) {
                 res.status(503).send({ error: 'Service Unavailable', details: error.message });
             }
         }
 
     } catch (error) {
         console.error('EmpirePair main error:', error);
-        if (!res.headersSent) {
+        if (res && !res.headersSent) {
             res.status(500).send({ error: 'Internal Server Error', details: error.message });
         }
     } finally {
-        // Release connection lock
-        global[connectionLockKey] = false;
+        delete global[connectionLockKey];
     }
 }
 
